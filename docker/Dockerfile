@@ -1,4 +1,4 @@
-FROM openresty/openresty:1.13.6.1-alpine
+FROM openresty/openresty:1.15.8.3-alpine
 USER root
 
 RUN apk add -v --no-cache bind-tools python py-pip supervisor \

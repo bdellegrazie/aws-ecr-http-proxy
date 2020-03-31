@@ -1,12 +1,12 @@
 FROM openresty/openresty:1.15.8.3-alpine
 USER root
 
-RUN apk add -v --no-cache bind-tools python py-pip supervisor \
+RUN apk add -v --no-cache bind-tools python3 py3-pip supervisor \
  && mkdir /cache \
  && addgroup -g 101 nginx \
  && adduser -u 100  -D -S -h /cache -s /sbin/nologin -G nginx nginx \
- && pip install --upgrade pip awscli==1.11.183 \
- && apk -v --purge del py-pip
+ && pip3 install --upgrade pip awscli==1.18.32 \
+ && apk -v --purge del py3-pip
 
 COPY files/startup.sh files/renew_token.sh /
 COPY files/ecr.ini /etc/supervisor.d/ecr.ini

@@ -1,14 +1,19 @@
-<p align="left">
-    <a href="https://hub.docker.com/r/esailors/aws-ecr-http-proxy/builds" alt="Build">
-        <img src="https://img.shields.io/docker/build/esailors/aws-ecr-http-proxy" /></a>
-    <a href="https://hub.docker.com/r/esailors/aws-ecr-http-proxy" alt="Pulls">
-        <img src="https://img.shields.io/docker/pulls/esailors/aws-ecr-http-proxy" /></a>
-    <a href="https://www.esailors.de" alt="Maintained">
-        <img src="https://img.shields.io/maintenance/yes/2019.svg" /></a>
-
-</p>
-
 # aws-ecr-http-proxy
+
+Forked from: https://github.com/Lotto24/aws-ecr-http-proxy
+Documentation below is a WIP
+
+## changelog
+
+### v2.0.0
+
+* use latest stable openresty image
+* use latest stable awscli
+* use python3
+* support use of AWS_PROFILE for mapping credentials into the system, this allows IAM usage too
+* Ansible role now requires 2.9.x
+
+# Overview
 
 A very simple nginx push/pull proxy that forwards requests to AWS ECR and caches the responses locally.
 
@@ -32,7 +37,7 @@ The proxy is packaged in a docker container and can be configured with following
 ### Example:
 
 ```sh
-docker run -d --name docker-registry-proxy --net=host \
+docker run -d --name aws-ecr-proxy --net=host \
   -v /registry/local-storage/cache:/cache \
   -v /registry/certificate.pem:/opt/ssl/certificate.pem \
   -v /registry/key.pem:/opt/ssl/key.pem \
@@ -46,7 +51,7 @@ docker run -d --name docker-registry-proxy --net=host \
   -e ENABLE_SSL=true \
   -e REGISTRY_HTTP_TLS_KEY=/opt/ssl/key.pem \
   -e REGISTRY_HTTP_TLS_CERTIFICATE=/opt/ssl/certificate.pem \
-  esailors/aws-ecr-http-proxy:latest
+  aws-ecr-proxy:latest
 ```
 
 If you ran this command on "registry-proxy.example.com" you can now get your images using `docker pull registry-proxy.example.com:5000/repo/image`.

@@ -21,7 +21,9 @@
 
 - name: Print current cache directory size information
   become: true
-  command: du -hs {{ docker_proxy_cache_path  }}
+  command: du -hs {{ docker_proxy_cache_path  }}  # noqa 301
+  changed_when: false
+  check_mode: false
 
 - name: Pull proxy container
   become: true
@@ -39,7 +41,9 @@
 
 - name: Clear local cache
   become: true
-  command: rm -rf {{ docker_proxy_cache_path  }}
+  file:
+    path: "{{ docker_proxy_cache_path }}"
+    state: absent
   when: docker_proxy_clear_cache|bool
 
 - name: Run new docker registry proxy container

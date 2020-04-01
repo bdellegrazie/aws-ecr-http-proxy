@@ -23,9 +23,13 @@ if [ -z "$AWS_REGION" ] ; then
   exit 1
 fi
 
-if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
-  echo "AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY not set."
-  exit 1
+if [ -z "$AWS_PROFILE" ]; then
+  if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+    echo "AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY not set."
+    exit 1
+  fi
+  else
+    echo "AWS_PROFILE set, assuming credentials file mapped in"
 fi
 
 UPSTREAM_WITHOUT_PORT=$( echo ${UPSTREAM} | sed -r "s/.*:\/\/(.*):.*/\1/g")
@@ -61,13 +65,15 @@ sed -i -e s!SSL_LISTEN!"$SSL_LISTEN"!g $CONFIG
 
 # setup ~/.aws directory
 AWS_FOLDER='/root/.aws'
-mkdir -p ${AWS_FOLDER}
-echo "[default]" > ${AWS_FOLDER}/config
-echo "region = $AWS_REGION" >> ${AWS_FOLDER}/config
-echo "[default]" > ${AWS_FOLDER}/credentials
-echo "aws_access_key_id=$AWS_ACCESS_KEY_ID" >> ${AWS_FOLDER}/credentials
-echo "aws_secret_access_key=$AWS_SECRET_ACCESS_KEY" >> ${AWS_FOLDER}/credentials
-chmod 600 -R ${AWS_FOLDER}
+if [ -z "$AWS_PROFILE" ]; then
+  mkdir -p ${AWS_FOLDER}
+  echo "[default]" > ${AWS_FOLDER}/config
+  echo "region = $AWS_REGION" >> ${AWS_FOLDER}/config
+  echo "[default]" > ${AWS_FOLDER}/credentials
+  echo "aws_access_key_id=$AWS_ACCESS_KEY_ID" >> ${AWS_FOLDER}/credentials
+  echo "aws_secret_access_key=$AWS_SECRET_ACCESS_KEY" >> ${AWS_FOLDER}/credentials
+  chmod 600 -R ${AWS_FOLDER}
+fi
 
 # add the auth token in default.conf
 AUTH=$(grep  X-Forwarded-User $CONFIG | awk '{print $4}'| uniq|tr -d "\n\r")

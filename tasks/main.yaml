@@ -1,6 +1,11 @@
+---
 - name: Create cache directory
   become: true
-  file: path={{ docker_proxy_cache_path  }} state=directory mode=0755 recurse=true
+  file:
+    path: "{{ docker_proxy_cache_path  }}"
+    state: directory
+    mode: "u=rwx,go=rx"
+    recurse: true
 
 - name: Copy the ssl certificates
   become: true
@@ -20,15 +25,17 @@
 
 - name: Pull proxy container
   become: true
-  command: >
-    docker pull esailors/aws-ecr-http-proxy:{{ docker_proxy_version }}
+  docker_image:
+    name: "{{ docker_proxy_image }}"
+    source: pull
   tags:
     - pull-image
 
 - name: Remove previous proxy container
   become: true
-  command: docker rm -fv docker-registry-proxy
-  ignore_errors: true
+  docker_container:
+    name: docker-registry-proxy
+    state: absent
 
 - name: Clear local cache
   become: true
@@ -37,29 +44,35 @@
 
 - name: Run new docker registry proxy container
   become: true
-  command: >
-    docker run -d
-      --name docker-registry-proxy
-      --net host
-      --restart=unless-stopped
-
-      -v {{ docker_proxy_cache_path }}:/cache
-
-      {% if docker_proxy_ssl_enabled | bool %}
-      -v {{ docker_proxy_ssl_host_path }}/{{ docker_proxy_ssl_host_cert_name }}:{{ docker_proxy_ssl_container_path }}/certificate.pem
-      -v {{ docker_proxy_ssl_host_path }}/{{ docker_proxy_ssl_host_key_name }}:{{ docker_proxy_ssl_container_path }}/key.pem
-
-      -e ENABLE_SSL=true
-      -e REGISTRY_HTTP_TLS_KEY={{ docker_proxy_ssl_container_path }}/key.pem
-      -e REGISTRY_HTTP_TLS_CERTIFICATE={{ docker_proxy_ssl_container_path }}/certificate.pem
-      {% endif %}
-
-      -e RESOLVER={{ docker_proxy_backend_resolver }}
-      -e PORT=5000
-      -e UPSTREAM={{ docker_proxy_backend_schema }}://{{ docker_proxy_backend }}
-      -e CACHE_MAX_SIZE={{ docker_proxy_cache_limit }}
-      -e AWS_ACCESS_KEY_ID={{ docker_proxy_ecr_access_id }}
-      -e AWS_SECRET_ACCESS_KEY={{ docker_proxy_ecr_secret_key }}
-      -e AWS_REGION={{ docker_proxy_ecr_region }}
-
-      esailors/aws-ecr-http-proxy:{{ docker_proxy_version }}
+  docker_container:
+    image: "{{ docker_proxy_image }}"
+    name: docker-registry-proxy
+    network_mode: host
+    restart_policy: unless-stopped
+    tmpfs:
+      - "/tmp"
+    env: >
+      {{
+        {
+          "RESOLVER": docker_proxy_backend_resolver
+          "PORT": "5000"
+          "UPSTREAM": docker_proxy_backend_schema ~ "//" ~ docker_proxy_backend
+          "CACHE_MAX_SIZE": docker_proxy_cache_limit
+          "AWS_ACCESS_KEY_ID": docker_proxy_ecr_access_id
+          "AWS_SECRET_ACCESS_KEY": docker_proxy_ecr_secret_key
+          "AWS_REGION": docker_proxy_ecr_region
+          "ENABLE_SSL": "true" if (docker_proxy_ssl_enabled | bool) else "false"
+        } | union({
+          "REGISTRY_HTTP_TLS_KEY": docker_proxy_ssl_container_path ~ "/key.pem"
+          "REGISTRY_HTTP_TLS_CERTIFICATE": docker_proxy_ssl_container_path ~ "/certificate.pem"
+        } if (docker_proxy_ssl_enabled | bool) else {})
+      }}
+    volumes: >
+      {{
+        [
+          docker_proxy_cache_path ~ ":/cache:rw"
+        ] | union([
+          docker_proxy_ssl_host_path ~ "/" ~ docker_proxy_ssl_host_cert_name ~ ":" ~ docker_proxy_ssl_container_path ~ "/certificate.pem:ro"
+          docker_proxy_ssl_host_path ~ "/" ~ docker_proxy_ssl_host_key_name ~ ":" ~ docker_proxy_ssl_container_path ~ "/key.pem:ro"
+        ] if (docker_proxy_ssl_enabled | bool) else [])
+      }}

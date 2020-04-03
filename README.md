@@ -1,9 +1,7 @@
-# aws-ecr-http-proxy
+# aws-ecr-proxy
 
 Forked from: https://github.com/Lotto24/aws-ecr-http-proxy
 Documentation below is a WIP
-
-## changelog
 
 ### v2.0.0
 
@@ -57,13 +55,11 @@ docker run -d --name aws-ecr-proxy --net=host \
 If you ran this command on "registry-proxy.example.com" you can now get your images using `docker pull registry-proxy.example.com:5000/repo/image`.
 
 ### Deploying the proxy
-Modify the ansible role [variables](https://github.com/eSailors/aws-ecr-http-proxy/tree/master/roles/docker-registry-proxy/defaults) according to your need and run the playbook as follow:
-```sh
-ansible-playbook -i hosts playbook-docker-registry-proxy.yaml
-```
-In case you want to enable SSL/TLS please replace the SSL certificates with the valid ones in [roles/docker-registry-proxy/files/*.pem](https://github.com/eSailors/aws-ecr-http-proxy/tree/master/roles/docker-registry-proxy/files)
 
-### Note on SSL/TLS
-The proxy is using `HTTP` (plain text) as default protocol for now. So in order to avoid docker client complaining either:
- - (**Recommended**) Enable SSL/TLS using `ENABLE_SSL` configuration. For that you will have to mount your **valid** certificate/key in the container and pass the paths using  `REGISTRY_HTTP_TLS_*` variables.
- - Mark the registry host as insecure in your client [deamon config](https://docs.docker.com/registry/insecure/).
+Optionally use the role at [bdellegrazie.aws-ecr-proxy](https://github.com/bdellegrazie/ansible-role-aws-ecr-proxy) from Galaxy
+
+# Authors
+
+[Original: Lotto24/eSailors](https://github.com/Lotto24/aws-ecr-http-proxy)
+[This Fork: bdellegrazie](https://github.com/bdellegrazie/aws-ecr-proxy)
+

@@ -3,17 +3,12 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v2.5.0
     hooks:
-      #- id: trailing-whitespace
-      #  files: \.(js|json|rb|md|py|sh|txt|yaml|yml)$
+      - id: trailing-whitespace
+        files: \.(js|json|rb|md|py|sh|txt|yaml|yml)$
       - id: check-case-conflict
-      #- id: check-json
-      #- id: end-of-file-fixer
-  - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.21.0
+      - id: check-json
+      - id: end-of-file-fixer
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-nodejs
+    rev: v1.1.1
     hooks:
-      - id: yamllint
-  - repo: https://github.com/willthames/ansible-lint.git
-    rev: v4.2.0
-    hooks:
-      - id: ansible-lint
-        files: \.(yaml|yml)$
+      - id: dockerfile_lint

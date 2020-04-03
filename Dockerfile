@@ -1,4 +1,10 @@
-FROM openresty/openresty:1.15.8.3-alpine
+ARG OPENRESTY_VERSION=1.15.8.3-alpine
+FROM openresty/openresty:${OPENRESTY_VERSION}
+
+ARG VERSION=undefined
+
+LABEL name="aws-ecr-proxy" vendor="https://github.com/bdellegrazie/docker-aws-ecr-proxy" version="${VERSION}"
+
 USER root
 
 RUN apk add -v --no-cache bind-tools python3 py3-pip supervisor \
